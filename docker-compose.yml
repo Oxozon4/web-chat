@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres
+    restart: unless-stopped
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: czat
+    ports:
+      - "5432:5432"
+  mongo:
+    image: mongo:4.4
+    container_name: mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongodb/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+  backend:
+    build: .
+    container_name: backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATA_MONGODB_HOST: mongo
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/czat
+      SERVER_PORT: 80
+    depends_on:
+      - mongo
+      - postgres
+    ports:
+      - "80:80"
